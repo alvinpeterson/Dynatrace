@@ -28,9 +28,9 @@ export function availabilityQuery(journey: Journey, slo: JourneySlo): string {
     `fetch bizevents, from: ${EVALUATION_WINDOW}`,
     `| ${journeyFilter(journey)}`,
     `| summarize total = count(), failed = countIf(outcome == "failure")`,
-    `| fieldsAdd sli = if(total == 0, 100.0, (toDouble(total - failed) / total) * 100)`,
+    `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(total - failed) / total) * 100)`,
     `| fieldsAdd target = ${slo.target}`,
-    `| fieldsAdd errorBudgetBurnedPct = if(sli >= target, 0.0, ((target - sli) / (100 - target)) * 100)`,
+    `| fieldsAdd errorBudgetBurnedPct = if(sli >= target, 0.0, else: ((target - sli) / (100 - target)) * 100)`,
     `| fields journey = "${journey.id}", sli, target, total, failed, errorBudgetBurnedPct`,
   ].join('\n');
 }
@@ -45,7 +45,7 @@ export function latencyQuery(journey: Journey, slo: JourneySlo): string {
     `fetch bizevents, from: ${EVALUATION_WINDOW}`,
     `| ${journeyFilter(journey)}`,
     `| summarize total = count(), withinThreshold = countIf(duration <= ${threshold})`,
-    `| fieldsAdd sli = if(total == 0, 100.0, (toDouble(withinThreshold) / total) * 100)`,
+    `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(withinThreshold) / total) * 100)`,
     `| fieldsAdd target = ${slo.target}`,
     `| fields journey = "${journey.id}", sli, target, total, thresholdMs = ${threshold}`,
   ].join('\n');
@@ -79,7 +79,7 @@ export function overviewQuery(): string {
     `fetch bizevents, from: ${EVALUATION_WINDOW}`,
     `| filter event.provider == "${BIZEVENT_PROVIDER}" and isNotNull(journey)`,
     `| summarize total = count(), failed = countIf(outcome == "failure"), by: { journey }`,
-    `| fieldsAdd availabilityPct = if(total == 0, 100.0, (toDouble(total - failed) / total) * 100)`,
+    `| fieldsAdd availabilityPct = if(total == 0, 100.0, else: (toDouble(total - failed) / total) * 100)`,
     `| sort availabilityPct asc`,
   ].join('\n');
 }
