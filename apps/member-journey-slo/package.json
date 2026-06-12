@@ -1,0 +1,30 @@
+{
+  "name": "healthequity-member-journey-slo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dynatrace app tracking SLOs and error budgets for HealthEquity member journeys",
+  "scripts": {
+    "start": "dt-app dev",
+    "build": "dt-app build",
+    "deploy": "dt-app deploy",
+    "info": "dt-app info",
+    "update": "dt-app update",
+    "generate:certificate": "dt-app generate-certificate"
+  },
+  "dependencies": {
+    "@dynatrace-sdk/client-query": "^1.17.0",
+    "@dynatrace/strato-components": "^0.30.0",
+    "@dynatrace/strato-components-preview": "^0.140.0",
+    "@dynatrace/strato-design-tokens": "^0.30.0",
+    "@dynatrace/strato-icons": "^0.30.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@dynatrace/dt-app": "^0.150.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}

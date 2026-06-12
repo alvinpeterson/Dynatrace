@@ -1,0 +1,27 @@
+{
+  "environmentUrl": "https://<your-env-id>.apps.dynatrace.com",
+  "app": {
+    "name": "HealthEquity Member Journey SLOs",
+    "version": "0.1.0",
+    "id": "com.healthequity.member.journey.slo",
+    "description": "SLO and error-budget tracking for HealthEquity's critical member journeys: authentication, HSA funding, claims & reimbursement, card authorization, and open enrollment.",
+    "scopes": [
+      {
+        "name": "storage:bizevents:read",
+        "comment": "Query member-journey business events that carry the SLI signal"
+      },
+      {
+        "name": "storage:spans:read",
+        "comment": "Drill into distributed traces for failing journeys"
+      },
+      {
+        "name": "storage:metrics:read",
+        "comment": "Read service-level metrics for context"
+      },
+      {
+        "name": "storage:logs:read",
+        "comment": "Query logs for journey diagnostics"
+      }
+    ]
+  }
+}
