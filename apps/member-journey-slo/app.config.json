@@ -1,5 +1,5 @@
 {
-  "environmentUrl": "https://<your-env-id>.apps.dynatrace.com",
+  "environmentUrl": "https://fau66290.apps.dynatrace.com",
   "app": {
     "name": "HealthEquity Member Journey SLOs",
     "version": "0.1.0",
