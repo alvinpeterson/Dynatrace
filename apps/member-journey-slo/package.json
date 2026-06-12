@@ -12,17 +12,17 @@
     "generate:certificate": "dt-app generate-certificate"
   },
   "dependencies": {
-    "@dynatrace-sdk/client-query": "^1.17.0",
-    "@dynatrace/strato-components": "^0.30.0",
-    "@dynatrace/strato-components-preview": "^0.140.0",
-    "@dynatrace/strato-design-tokens": "^0.30.0",
-    "@dynatrace/strato-icons": "^0.30.0",
+    "@dynatrace-sdk/client-query": "^1.25.0",
+    "@dynatrace/strato-components": "^3.6.0",
+    "@dynatrace/strato-components-preview": "^3.4.1",
+    "@dynatrace/strato-design-tokens": "^1.5.0",
+    "@dynatrace/strato-icons": "^2.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0"
   },
   "devDependencies": {
-    "@dynatrace/dt-app": "^0.150.0",
+    "dt-app": "^1.10.2",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "typescript": "^5.5.0"
