@@ -1,0 +1,31 @@
+[
+  {
+    "schemaId": "builtin:anomaly-detection.metric-events",
+    "scope": "environment",
+    "value": {
+      "enabled": true,
+      "summary": "VMware CX production datastore - over-provisioned (thin over-commit)",
+      "queryDefinition": {
+        "type": "METRIC_SELECTOR",
+        "metricSelector": "func:vmware.datastore.disk.percent_provisioned:names:filter(and(contains(\"dt.entity.vmware:datastore.name\",\"prdsan\"),contains(\"dt.entity.vmware:datastore.name\",\"CX\")))"
+      },
+      "modelProperties": {
+        "type": "STATIC_THRESHOLD",
+        "threshold": 150.0,
+        "alertOnNoData": false,
+        "alertCondition": "ABOVE",
+        "violatingSamples": 3,
+        "samples": 5,
+        "dealertingSamples": 5
+      },
+      "eventTemplate": {
+        "title": "VMware CX datastore over-provisioned: {dims:datastore.name}",
+        "description": "Datastore {dims:datastore.name} is {alert_condition} {threshold}% provisioned (thin over-commit). Thin VMDKs can grow into space that does not exist and fill the datastore - the failure mode behind the 2026-06-20 PRODCXFIL01 outage (CX_IMG4 was 159% provisioned). Review provisioning vs free space and reclaim or expand the datastore before it fills.",
+        "eventType": "RESOURCE",
+        "davisMerge": true,
+        "metadata": []
+      },
+      "eventEntityDimensionKey": "dt.entity.vmware:datastore"
+    }
+  }
+]

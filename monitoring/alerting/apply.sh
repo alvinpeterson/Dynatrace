@@ -13,16 +13,21 @@
 set -euo pipefail
 
 : "${DT_TENANT:?set DT_TENANT, e.g. https://fau66290.live.dynatrace.com}"
-: "${DT_API_TOKEN:?set DT_API_TOKEN (needs settings.write)}"
+: "${DT_API_TOKEN:?set DT_API_TOKEN (classic settings.write token, or a platform token with DT_AUTH_SCHEME=Bearer)}"
 
 BASE="${DT_TENANT%/}"
+AUTH_SCHEME="${DT_AUTH_SCHEME:-Api-Token}"   # use Bearer for a platform/OAuth token
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Only the two static metric events are applied here. The forecast detector
-# (vmware-datastore-cx-freespace-forecast.json) is a builtin:davis.anomaly-detectors
-# object that requires OAuth/a platform token - see README "Forecast" section.
+# The three metric events below are applied here. The forecast capability
+# requires a Workflow (builtin:davis.anomaly-detectors has no forecast analyzer)
+# - see README "Forecast" section; it is not applied by this script.
+#
+# Works with either a classic Api-Token (settings.write) or a platform token.
+# Set DT_AUTH_SCHEME=Bearer for a platform/OAuth token (default: Api-Token).
 FILES=(
   "vmware-datastore-cx-freespace-warning.json"
   "vmware-datastore-cx-freespace-critical.json"
+  "vmware-datastore-cx-overcommit.json"
 )
 
 MODE="validate"
@@ -39,7 +44,7 @@ echo
 for f in "${FILES[@]}"; do
   echo "--- $f ---"
   http=$(curl -s -o /tmp/dt_resp.json -w "%{http_code}" -X POST "$BASE/api/v2/settings/objects$QUERY" \
-    -H "Authorization: Api-Token $DT_API_TOKEN" \
+    -H "Authorization: $AUTH_SCHEME $DT_API_TOKEN" \
     -H "Content-Type: application/json" \
     --data @"$DIR/$f")
   cat /tmp/dt_resp.json; echo
