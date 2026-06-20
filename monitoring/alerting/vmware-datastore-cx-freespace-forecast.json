@@ -1,0 +1,69 @@
+[
+  {
+    "schemaId": "builtin:davis.anomaly-detectors",
+    "scope": "environment",
+    "value": {
+      "enabled": true,
+      "title": "VMware CX datastore - predicted to run out of space (Davis forecast)",
+      "description": "Davis predictive alert: forecasts free space on the large production CX VMware datastores and raises an event when free space is predicted to drop below 500 GB within the forecast horizon. Gives lead time ahead of the static <500 GB critical floor - motivated by the 2026-06-20 PRODCXFIL01 outage, where blfprdsan02_CX_IMG4 drained ~1 TB/hour and went 634 GB -> 0 GB in ~45 min.",
+      "source": "Monitoring as code (Dynatrace repo: monitoring/alerting)",
+      "executionSettings": {
+        "actor": "REPLACE_WITH_SERVICE_USER_UUID",
+        "queryOffset": 5
+      },
+      "analyzer": {
+        "name": "dt.statistics.ui.anomaly_detection.PredictionAnalyzer",
+        "input": [
+          {
+            "key": "query.expression",
+            "value": "timeseries free = avg(vmware.datastore.freeSpace), by:{datastore.name}, filter: { contains(datastore.name, \"prdsan\") and contains(datastore.name, \"CX\") }"
+          },
+          {
+            "key": "forecastHorizon",
+            "value": "120"
+          },
+          {
+            "key": "coverageProbability",
+            "value": "0.9"
+          },
+          {
+            "key": "numberOfSignalFluctuations",
+            "value": "4"
+          },
+          {
+            "key": "alertCondition",
+            "value": "BELOW"
+          },
+          {
+            "key": "alertThreshold",
+            "value": "500000000000"
+          },
+          {
+            "key": "alertOnMissingData",
+            "value": "false"
+          }
+        ]
+      },
+      "eventTemplate": {
+        "properties": [
+          {
+            "key": "event.type",
+            "value": "CUSTOM_ALERT"
+          },
+          {
+            "key": "dt.source_entity",
+            "value": "{dims:dt.entity.vmware:datastore}"
+          },
+          {
+            "key": "event.name",
+            "value": "VMware CX datastore predicted to run low on space: {dims:datastore.name}"
+          },
+          {
+            "key": "event.description",
+            "value": "Davis forecasts that free space on production CX datastore {dims:datastore.name} will fall below 500 GB within the next ~2 hours. Act now: delete stale snapshots/backups, storage vMotion VMs off, or expand the datastore before it impacts hosts on it (e.g. PRODCXFIL01)."
+          }
+        ]
+      }
+    }
+  }
+]

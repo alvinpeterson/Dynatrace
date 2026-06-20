@@ -12,10 +12,13 @@ alert** firing at the time (only the downstream "host unavailable" problems).
 |------|---------|
 | `vmware-datastore-cx-freespace-warning.json`  | Metric event — WARNING, free space `< 1000 GB` |
 | `vmware-datastore-cx-freespace-critical.json` | Metric event — CRITICAL, free space `< 500 GB` |
-| `apply.sh` | Validate (default) or apply the events via the Settings 2.0 API |
+| `vmware-datastore-cx-freespace-forecast.json` | Davis **predictive** detector — alert when free space is *forecast* to fall below 500 GB within ~2 h |
+| `apply.sh` | Validate (default) or apply the two metric events via the Settings 2.0 API |
 
-Both are [`builtin:anomaly-detection.metric-events`](https://docs.dynatrace.com/docs/dynatrace-api/environment-api/settings)
-objects (schema v1.0.19).
+The two static events are [`builtin:anomaly-detection.metric-events`](https://docs.dynatrace.com/docs/dynatrace-api/environment-api/settings)
+objects (schema v1.0.19). The forecast detector is a
+[`builtin:davis.anomaly-detectors`](https://docs.dynatrace.com/docs/platform/davis-ai/anomaly-detection)
+object (schema v1.0.15).
 
 ## Why absolute GB, not % free
 
@@ -74,10 +77,54 @@ Sampling: `3` violating of `5` samples to fire, `5` to clear — slow-moving
 signal, so this resists flapping while still reacting quickly.
 
 > **Lead-time caveat:** on 2026-06-20 `CX_IMG4` drained ~1 TB/hour and went
-> 634 GB → 0 GB in ~45 min, so even a 1 TB warning gives limited runway. For
-> earlier warning, consider adding a Davis **predictive/forecast** metric event
-> or a rate-of-change alert on the same selector. Tune thresholds up if your
-> remediation needs more time.
+> 634 GB → 0 GB in ~45 min, so even a 1 TB warning gives limited runway. The
+> Davis forecast detector below addresses this by alerting on the *predicted*
+> trajectory rather than the current value.
+
+## Forecast (Davis predictive) detector
+
+`vmware-datastore-cx-freespace-forecast.json` is a Davis anomaly detector using
+the **prediction analyzer**
+(`dt.statistics.ui.anomaly_detection.PredictionAnalyzer`). It runs a DQL
+timeseries over the same CX prod datastores and raises a `CUSTOM_ALERT` when
+free space is *forecast* to drop **below 500 GB within the next ~2 hours**
+(`forecastHorizon = 120`, `coverageProbability = 0.9`). This fires on the
+*trend* — e.g. it would have alerted during the 06:30→ steady decline well
+before the static floor was hit — giving runway the static events can't.
+
+Query (threshold is in **bytes**, so 500 GB = `500000000000`):
+
+```
+timeseries free = avg(vmware.datastore.freeSpace), by:{datastore.name},
+  filter: { contains(datastore.name, "prdsan") and contains(datastore.name, "CX") }
+```
+
+### Before you apply — two required edits
+
+1. **`executionSettings.actor`** is set to `REPLACE_WITH_SERVICE_USER_UUID`.
+   Davis detectors run queries as a **service user**; put a valid service-user
+   UUID here (the existing detectors in this tenant use ones like
+   `a4691d58-...`). Pick the service user your team uses for monitoring-as-code.
+2. Tune `forecastHorizon` / `alertThreshold` to your remediation runway if 2 h /
+   500 GB isn't right.
+
+### How to apply
+
+> ⚠️ **Not deployable with a classic API token.** `builtin:davis.anomaly-detectors`
+> requires **OAuth / a platform token** — the Settings API rejects analyzer
+> validation over an Api-Token (`"Could not do validation as request was not
+> done using oAuth"`). `apply.sh` therefore covers only the two static metric
+> events. Apply the forecast detector one of these ways:
+>
+> - **UI:** Settings → Anomaly detection → Davis anomaly detectors → add, or
+>   paste the `value` object.
+> - **API with OAuth:** `POST /api/v2/settings/objects` using an OAuth bearer
+>   token (or platform token) with `settings:objects:write`, same payload shape.
+>
+> Unlike the static events (validated against tenant `fau66290`,
+> `validateOnly` → HTTP 200), this detector was **not** API-validated here
+> because the token couldn't perform OAuth validation. Confirm the analyzer
+> input keys in the UI after import.
 
 ## Apply
 

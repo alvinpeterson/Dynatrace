@@ -17,6 +17,9 @@ set -euo pipefail
 
 BASE="${DT_TENANT%/}"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Only the two static metric events are applied here. The forecast detector
+# (vmware-datastore-cx-freespace-forecast.json) is a builtin:davis.anomaly-detectors
+# object that requires OAuth/a platform token - see README "Forecast" section.
 FILES=(
   "vmware-datastore-cx-freespace-warning.json"
   "vmware-datastore-cx-freespace-critical.json"
