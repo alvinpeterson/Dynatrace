@@ -1,0 +1,31 @@
+[
+  {
+    "schemaId": "builtin:anomaly-detection.metric-events",
+    "scope": "environment",
+    "value": {
+      "enabled": true,
+      "summary": "VMware CX production datastore - low free space (WARNING)",
+      "queryDefinition": {
+        "type": "METRIC_SELECTOR",
+        "metricSelector": "vmware.datastore.freeSpace:names:filter(and(contains(\"dt.entity.vmware:datastore.name\",\"prdsan\"),contains(\"dt.entity.vmware:datastore.name\",\"CX\")))/1000000000"
+      },
+      "modelProperties": {
+        "type": "STATIC_THRESHOLD",
+        "threshold": 1000.0,
+        "alertOnNoData": false,
+        "alertCondition": "BELOW",
+        "violatingSamples": 3,
+        "samples": 5,
+        "dealertingSamples": 5
+      },
+      "eventTemplate": {
+        "title": "VMware CX datastore low on space (warning): {dims:datastore.name}",
+        "description": "Free space on production CX datastore {dims:datastore.name} (vCenter {dims:dt.entity.vmware:vcenter.name}) is {alert_condition} the warning threshold of {threshold} GB.\n\nThese datastores back member-facing CX hosts such as PRODCXFIL01. A full datastore can make every VM/host on it unresponsive. Investigate growth (large VMDKs, snapshots, backups) and reclaim or expand capacity before it reaches the critical threshold.",
+        "eventType": "RESOURCE",
+        "davisMerge": true,
+        "metadata": []
+      },
+      "eventEntityDimensionKey": "dt.entity.vmware:datastore"
+    }
+  }
+]

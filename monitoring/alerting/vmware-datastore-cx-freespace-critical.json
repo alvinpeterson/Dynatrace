@@ -1,0 +1,31 @@
+[
+  {
+    "schemaId": "builtin:anomaly-detection.metric-events",
+    "scope": "environment",
+    "value": {
+      "enabled": true,
+      "summary": "VMware CX production datastore - critically low free space (CRITICAL)",
+      "queryDefinition": {
+        "type": "METRIC_SELECTOR",
+        "metricSelector": "vmware.datastore.freeSpace:names:filter(and(contains(\"dt.entity.vmware:datastore.name\",\"prdsan\"),contains(\"dt.entity.vmware:datastore.name\",\"CX\")))/1000000000"
+      },
+      "modelProperties": {
+        "type": "STATIC_THRESHOLD",
+        "threshold": 500.0,
+        "alertOnNoData": false,
+        "alertCondition": "BELOW",
+        "violatingSamples": 3,
+        "samples": 5,
+        "dealertingSamples": 5
+      },
+      "eventTemplate": {
+        "title": "VMware CX datastore CRITICALLY low on space: {dims:datastore.name}",
+        "description": "Free space on production CX datastore {dims:datastore.name} (vCenter {dims:dt.entity.vmware:vcenter.name}) is {alert_condition} the critical threshold of {threshold} GB.\n\nIMMINENT RISK: when this datastore fills, VMs/hosts on it (e.g. PRODCXFIL01) go unresponsive - this is the failure mode behind the 2026-06-20 PRODCXFIL01 outage. Free space now: delete stale snapshots/backups, storage vMotion VMs off, or expand the datastore.",
+        "eventType": "RESOURCE",
+        "davisMerge": true,
+        "metadata": []
+      },
+      "eventEntityDimensionKey": "dt.entity.vmware:datastore"
+    }
+  }
+]
