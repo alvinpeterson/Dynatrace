@@ -1,35 +1,35 @@
 # HealthEquity Member Journey SLOs
 
 A Dynatrace App (AppEngine / Grail + DQL) that tracks **SLOs and error budgets**
-for HealthEquity's most critical member journeys:
+for HealthEquity's critical member journeys, sourced from distributed traces.
 
-| Journey | Tier | Objectives |
-| --- | --- | --- |
-| Member Authentication | Critical | Availability 99.9% · Latency ≤ 1500ms @ 99% |
-| HSA Contribution (Money-In) | Critical | Availability 99.9% · Latency ≤ 2000ms @ 99% |
-| Card Transaction Authorization | Critical | Availability 99.95% · Latency ≤ 800ms @ 99.5% |
-| Claims & Reimbursement Submission | High | Availability 99.5% · Latency ≤ 3000ms @ 99% |
-| Reimbursement Disbursement | High | Availability 99.5% · Latency ≤ 5000ms @ 99% |
-| Open Enrollment Signup | High | Availability 99.9% · Latency ≤ 2500ms @ 99% |
-| Employer Enrollment File Ingestion | Standard | Availability 99.0% |
+Currently wired to live span data:
+
+| Journey | Endpoint | Tier | Objectives |
+| --- | --- | --- | --- |
+| Member Authentication | `/ClientLogin.aspx` | Critical | Availability 99.9% · Latency ≤ 1500ms @ 99% |
+| Member Balance Inquiry | `GetBalanceDetails` | High | Availability 99.5% · Latency ≤ 2000ms @ 99% |
+
+Additional journeys (card authorization, open enrollment, HSA funding, claims)
+are stubbed in [`journeys.ts`](src/ui/app/config/journeys.ts) and enabled by
+adding their `endpoint.name`.
 
 ## The SLI signal
 
-The app reads **business events** the applications emit with a common shape:
+The app reads **distributed traces (spans)**. Each journey is identified by the
+span's `endpoint.name`:
 
 ```
-event.provider == "com.healthequity"
-journey        == "<journey id>"        // e.g. "account.funding"
-outcome        == "success" | "failure"
-duration       == <end-to-end latency in ms>
+endpoint.name      identifies the journey (e.g. "/ClientLogin.aspx")
+request.is_failed  drives availability (failure = is_failed == true)
+duration           drives latency (compared against the threshold, e.g. 1500ms)
 ```
 
-All journeys, targets, and field names live in one place —
-[`src/ui/app/config/journeys.ts`](src/ui/app/config/journeys.ts). Adjust that file to
-match your instrumentation and every SLO card, query, and the companion
-dashboard update with it. If your signal lives in spans or logs rather than
-business events, change the `fetch` source in
-[`src/ui/app/queries/slo.ts`](src/ui/app/queries/slo.ts).
+All journeys, endpoints, and targets live in one place —
+[`src/ui/app/config/journeys.ts`](src/ui/app/config/journeys.ts). Add or edit an
+entry there and every SLO card, query, and the companion dashboard follows. To
+switch a journey to a different signal (business events or logs), change the
+`fetch` source in [`src/ui/app/queries/slo.ts`](src/ui/app/queries/slo.ts).
 
 ## Project layout
 

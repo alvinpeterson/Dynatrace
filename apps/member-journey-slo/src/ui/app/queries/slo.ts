@@ -1,33 +1,37 @@
 /**
- * DQL builders for member-journey SLIs.
+ * DQL builders for member-journey SLIs, sourced from distributed traces (spans).
  *
  * These produce the exact queries used by the app's SLO cards. The same DQL is
  * mirrored in the Platform dashboard so the app and the dashboard evaluate an
  * identical signal.
+ *
+ * Span specifics handled here:
+ *   - failures use the Davis-computed `request.is_failed` boolean
+ *   - `duration` is a DQL duration type; thresholds are written as `<n>ms`
  */
 import {
-  BIZEVENT_PROVIDER,
   EVALUATION_WINDOW,
   TREND_WINDOW,
+  JOURNEYS,
   type Journey,
   type JourneySlo,
 } from '../config/journeys';
 
-/** Shared filter that scopes a query to one journey's business events. */
+/** Scopes a query to one journey's spans via endpoint.name. */
 function journeyFilter(journey: Journey): string {
-  return `filter event.provider == "${BIZEVENT_PROVIDER}" and journey == "${journey.id}"`;
+  return `filter endpoint.name == "${journey.endpoint}"`;
 }
 
 /**
- * Availability SLI: success ratio over the evaluation window, with the error
- * budget burned expressed as a percentage of the total budget (0% = pristine,
- * 100% = budget exhausted).
+ * Availability SLI: non-failed request ratio over the evaluation window, with
+ * the error budget burned expressed as a percentage of the total budget
+ * (0% = pristine, 100% = budget exhausted).
  */
 export function availabilityQuery(journey: Journey, slo: JourneySlo): string {
   return [
-    `fetch bizevents, from: ${EVALUATION_WINDOW}`,
+    `fetch spans, from: ${EVALUATION_WINDOW}`,
     `| ${journeyFilter(journey)}`,
-    `| summarize total = count(), failed = countIf(outcome == "failure")`,
+    `| summarize total = count(), failed = countIf(request.is_failed == true)`,
     `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(total - failed) / total) * 100)`,
     `| fieldsAdd target = ${slo.target}`,
     `| fieldsAdd errorBudgetBurnedPct = if(sli >= target, 0.0, else: ((target - sli) / (100 - target)) * 100)`,
@@ -36,15 +40,15 @@ export function availabilityQuery(journey: Journey, slo: JourneySlo): string {
 }
 
 /**
- * Latency SLI: percentage of journeys completing at or under the configured
+ * Latency SLI: percentage of requests completing at or under the configured
  * threshold over the evaluation window.
  */
 export function latencyQuery(journey: Journey, slo: JourneySlo): string {
   const threshold = slo.thresholdMs ?? 0;
   return [
-    `fetch bizevents, from: ${EVALUATION_WINDOW}`,
+    `fetch spans, from: ${EVALUATION_WINDOW}`,
     `| ${journeyFilter(journey)}`,
-    `| summarize total = count(), withinThreshold = countIf(duration <= ${threshold})`,
+    `| summarize total = count(), withinThreshold = countIf(duration <= ${threshold}ms)`,
     `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(withinThreshold) / total) * 100)`,
     `| fieldsAdd target = ${slo.target}`,
     `| fields journey = "${journey.id}", sli, target, total, thresholdMs = ${threshold}`,
@@ -60,25 +64,26 @@ export function sloQuery(journey: Journey, slo: JourneySlo): string {
 
 /**
  * Hourly request/failure trend for a journey over the trend window. Drives the
- * burn-rate timeseries tile; availability per bucket is total vs failed.
+ * burn-rate timeseries tile; availability per bucket is requests vs failures.
  */
 export function trendQuery(journey: Journey): string {
   return [
-    `fetch bizevents, from: ${TREND_WINDOW}`,
+    `fetch spans, from: ${TREND_WINDOW}`,
     `| ${journeyFilter(journey)}`,
-    `| makeTimeseries requests = count(), failures = countIf(outcome == "failure"), interval: 1h`,
+    `| makeTimeseries requests = count(), failures = countIf(request.is_failed == true), interval: 1h`,
   ].join('\n');
 }
 
 /**
- * One-row-per-journey availability summary across all journeys — used for the
- * overview table / honeycomb tile.
+ * One-row-per-journey availability summary across all mapped journeys — used
+ * for the overview table / honeycomb tile.
  */
 export function overviewQuery(): string {
+  const endpoints = JOURNEYS.map((j) => `"${j.endpoint}"`).join(', ');
   return [
-    `fetch bizevents, from: ${EVALUATION_WINDOW}`,
-    `| filter event.provider == "${BIZEVENT_PROVIDER}" and isNotNull(journey)`,
-    `| summarize total = count(), failed = countIf(outcome == "failure"), by: { journey }`,
+    `fetch spans, from: ${EVALUATION_WINDOW}`,
+    `| filter in(endpoint.name, ${endpoints})`,
+    `| summarize total = count(), failed = countIf(request.is_failed == true), by: { endpoint = endpoint.name }`,
     `| fieldsAdd availabilityPct = if(total == 0, 100.0, else: (toDouble(total - failed) / total) * 100)`,
     `| sort availabilityPct asc`,
   ].join('\n');
