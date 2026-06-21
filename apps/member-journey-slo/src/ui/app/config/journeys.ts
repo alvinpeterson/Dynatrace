@@ -2,8 +2,8 @@
  * Single source of truth for HealthEquity member-journey SLOs.
  *
  * Every artifact in this project derives from this list:
- *   - the app UI (src/app/components/SloCard.tsx)
- *   - the DQL builders (src/app/queries/slo.ts)
+ *   - the app UI (src/ui/app/components/SloCard.tsx)
+ *   - the DQL builders (src/ui/app/queries/slo.ts)
  *   - the Platform dashboard (Dynatrace_Dashboards repo)
  *
  * The SLI signal is carried by business events the applications emit with a

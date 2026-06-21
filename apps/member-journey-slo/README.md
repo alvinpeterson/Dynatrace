@@ -25,21 +25,23 @@ duration       == <end-to-end latency in ms>
 ```
 
 All journeys, targets, and field names live in one place —
-[`src/app/config/journeys.ts`](src/app/config/journeys.ts). Adjust that file to
+[`src/ui/app/config/journeys.ts`](src/ui/app/config/journeys.ts). Adjust that file to
 match your instrumentation and every SLO card, query, and the companion
 dashboard update with it. If your signal lives in spans or logs rather than
 business events, change the `fetch` source in
-[`src/app/queries/slo.ts`](src/app/queries/slo.ts).
+[`src/ui/app/queries/slo.ts`](src/ui/app/queries/slo.ts).
 
 ## Project layout
 
 ```
-src/app/
-  config/journeys.ts     # single source of truth: journeys + SLO targets
-  queries/slo.ts         # DQL builders (availability, latency, trend, overview)
-  hooks/useDql.ts        # runs DQL against Grail via @dynatrace-sdk/client-query
-  components/SloCard.tsx  # renders one journey and its SLOs
-  App.tsx                # page layout
+src/ui/
+  main.tsx                 # entrypoint: mounts the app inside Strato's <AppRoot>
+  app/
+    config/journeys.ts     # single source of truth: journeys + SLO targets
+    queries/slo.ts         # DQL builders (availability, latency, trend, overview)
+    hooks/useDql.ts        # runs DQL against Grail via @dynatrace-sdk/client-query
+    components/SloCard.tsx  # renders one journey and its SLOs
+    App.tsx                # page layout
 ```
 
 ## Develop & deploy
