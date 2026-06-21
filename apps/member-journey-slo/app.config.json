@@ -4,7 +4,7 @@
     "name": "HealthEquity Member Journey SLOs",
     "version": "0.1.0",
     "id": "com.healthequity.member.journey.slo",
-    "description": "SLO and error-budget tracking for HealthEquity's critical member journeys: authentication, HSA funding, claims & reimbursement, card authorization, and open enrollment.",
+    "description": "SLO and error-budget tracking for HealthEquity member journeys.",
     "scopes": [
       {
         "name": "storage:bizevents:read",
