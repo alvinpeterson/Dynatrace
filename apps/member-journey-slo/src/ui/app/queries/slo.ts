@@ -29,7 +29,7 @@ function journeyFilter(journey: Journey): string {
  */
 export function availabilityQuery(journey: Journey, slo: JourneySlo): string {
   return [
-    `fetch spans, from: ${EVALUATION_WINDOW}`,
+    `fetch spans`,
     `| ${journeyFilter(journey)}`,
     `| summarize total = count(), failed = countIf(request.is_failed == true)`,
     `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(total - failed) / total) * 100)`,
@@ -46,7 +46,7 @@ export function availabilityQuery(journey: Journey, slo: JourneySlo): string {
 export function latencyQuery(journey: Journey, slo: JourneySlo): string {
   const threshold = slo.thresholdMs ?? 0;
   return [
-    `fetch spans, from: ${EVALUATION_WINDOW}`,
+    `fetch spans`,
     `| ${journeyFilter(journey)}`,
     `| summarize total = count(), withinThreshold = countIf(duration <= ${threshold}ms)`,
     `| fieldsAdd sli = if(total == 0, 100.0, else: (toDouble(withinThreshold) / total) * 100)`,

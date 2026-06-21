@@ -18,8 +18,11 @@
  * then add an entry below with that endpoint.name.
  */
 
-/** Rolling evaluation window for SLO compliance (DQL `from:` syntax). */
-export const EVALUATION_WINDOW = '-28d';
+/** Rolling evaluation window for SLO compliance, in days. */
+export const EVALUATION_WINDOW_DAYS = 28;
+
+/** Same window in DQL `from:` syntax, for display. */
+export const EVALUATION_WINDOW = `-${EVALUATION_WINDOW_DAYS}d`;
 
 /** Shorter window used for the burn-rate / trend timeseries tiles. */
 export const TREND_WINDOW = '-7d';

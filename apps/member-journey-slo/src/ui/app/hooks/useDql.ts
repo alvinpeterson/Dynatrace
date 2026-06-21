@@ -7,12 +7,24 @@ export interface DqlState<T> {
   error: Error | null;
 }
 
+export interface UseDqlOptions {
+  /** How far back to query, in days. Default 28. */
+  fromDaysAgo?: number;
+}
+
 /**
- * Runs a DQL query against Grail and returns its records. The query is executed
- * with an inline request timeout; if Grail needs longer, the result is polled
- * until it reaches a terminal state.
+ * Runs a DQL query against Grail and returns its records.
+ *
+ * The timeframe is passed explicitly in the request (defaultTimeframeStart/End)
+ * rather than relying on an inline `from:` in the DQL — inside an app the inline
+ * timeframe is not reliably applied, which otherwise collapses the query to a
+ * tiny default window and yields empty results.
  */
-export function useDql<T = Record<string, unknown>>(query: string): DqlState<T> {
+export function useDql<T = Record<string, unknown>>(
+  query: string,
+  options: UseDqlOptions = {},
+): DqlState<T> {
+  const { fromDaysAgo = 28 } = options;
   const [state, setState] = useState<DqlState<T>>({
     data: null,
     loading: true,
@@ -24,16 +36,20 @@ export function useDql<T = Record<string, unknown>>(query: string): DqlState<T> 
     setState({ data: null, loading: true, error: null });
 
     async function run() {
+      const end = new Date();
+      const start = new Date(end.getTime() - fromDaysAgo * 24 * 60 * 60 * 1000);
+
       let response = await queryExecutionClient.queryExecute({
-        body: { query, requestTimeoutMilliseconds: 30000 },
+        body: {
+          query,
+          requestTimeoutMilliseconds: 30000,
+          defaultTimeframeStart: start.toISOString(),
+          defaultTimeframeEnd: end.toISOString(),
+        },
       });
 
-      // Poll while the query is still running and no records are available yet.
-      while (
-        !response.result &&
-        response.requestToken &&
-        response.state === 'RUNNING'
-      ) {
+      // Poll until Grail returns records or the request can no longer progress.
+      while (!response.result && response.requestToken) {
         response = await queryExecutionClient.queryPoll({
           requestToken: response.requestToken,
         });
@@ -59,7 +75,7 @@ export function useDql<T = Record<string, unknown>>(query: string): DqlState<T> 
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [query, fromDaysAgo]);
 
   return state;
 }

@@ -2,7 +2,7 @@ import { Flex } from '@dynatrace/strato-components/layouts';
 import { Heading, Text } from '@dynatrace/strato-components/typography';
 import { ProgressCircle } from '@dynatrace/strato-components-preview/content';
 import Colors from '@dynatrace/strato-design-tokens/colors';
-import type { Journey, JourneySlo } from '../config/journeys';
+import { type Journey, type JourneySlo, EVALUATION_WINDOW_DAYS } from '../config/journeys';
 import { sloQuery } from '../queries/slo';
 import { useDql } from '../hooks/useDql';
 
@@ -26,7 +26,9 @@ function sloLabel(slo: JourneySlo): string {
 }
 
 function SloRow({ journey, slo }: { journey: Journey; slo: JourneySlo }) {
-  const { data, loading, error } = useDql<SloRecord>(sloQuery(journey, slo));
+  const { data, loading, error } = useDql<SloRecord>(sloQuery(journey, slo), {
+    fromDaysAgo: EVALUATION_WINDOW_DAYS,
+  });
   const record = data?.[0];
 
   if (loading) {
