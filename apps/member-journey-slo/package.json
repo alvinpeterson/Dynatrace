@@ -1,6 +1,6 @@
 {
   "name": "healthequity-member-journey-slo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Dynatrace app tracking SLOs and error budgets for HealthEquity member journeys",
   "scripts": {
