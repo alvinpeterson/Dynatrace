@@ -1,4 +1,3 @@
-import React from 'react';
 import { Flex } from '@dynatrace/strato-components/layouts';
 import { Heading, Text } from '@dynatrace/strato-components/typography';
 import { ProgressCircle } from '@dynatrace/strato-components-preview/content';
@@ -99,7 +98,7 @@ export function SloCard({ journey }: { journey: Journey }) {
           {journey.description}
         </Text>
       </Flex>
-      <Flex flexDirection="column" gap={10}>
+      <Flex flexDirection="column" gap={8}>
         {journey.slos.map((slo) => (
           <SloRow key={`${journey.id}-${slo.type}`} journey={journey} slo={slo} />
         ))}

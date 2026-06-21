@@ -1,4 +1,3 @@
-import React from 'react';
 import { Page } from '@dynatrace/strato-components-preview/layouts';
 import { Flex } from '@dynatrace/strato-components/layouts';
 import { Heading, Text } from '@dynatrace/strato-components/typography';
