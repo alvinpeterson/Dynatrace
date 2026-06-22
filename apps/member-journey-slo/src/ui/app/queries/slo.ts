@@ -17,9 +17,14 @@ import {
   type JourneySlo,
 } from '../config/journeys';
 
-/** Scopes a query to one journey's spans via endpoint.name. */
+/**
+ * Scopes a query to one journey's service-entry spans. Restricting to SERVER /
+ * root spans excludes the high-volume internal and client hops, which keeps the
+ * scan fast and makes availability/latency reflect the request as the member
+ * experiences it.
+ */
 function journeyFilter(journey: Journey): string {
-  return `filter endpoint.name == "${journey.endpoint}"`;
+  return `filter (span.kind == "SERVER" or request.is_root_span == true) and endpoint.name == "${journey.endpoint}"`;
 }
 
 /**
