@@ -18,13 +18,19 @@ import {
 } from '../config/journeys';
 
 /**
- * Scopes a query to one journey's service-entry spans. Restricting to SERVER /
- * root spans excludes the high-volume internal and client hops, which keeps the
- * scan fast and makes availability/latency reflect the request as the member
- * experiences it.
+ * Scopes a query to one journey's spans.
+ *
+ * By default this restricts to service-entry spans (SERVER or root), which
+ * excludes the high-volume internal and client hops, keeps the scan fast, and
+ * makes the SLI reflect the request as the member experiences it. Journeys that
+ * set `spanKinds` (e.g. messaging-driven flows) are scoped to those kinds
+ * instead.
  */
 function journeyFilter(journey: Journey): string {
-  return `filter (span.kind == "SERVER" or request.is_root_span == true) and endpoint.name == "${journey.endpoint}"`;
+  const scope = journey.spanKinds
+    ? `in(span.kind, ${journey.spanKinds.map((k) => `"${k}"`).join(', ')})`
+    : `(span.kind == "SERVER" or request.is_root_span == true)`;
+  return `filter ${scope} and endpoint.name == "${journey.endpoint}"`;
 }
 
 /**

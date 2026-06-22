@@ -5,7 +5,7 @@
   },
   "app": {
     "name": "HealthEquity Member Journey SLOs",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "id": "my.healthequity.member.journey.slo",
     "description": "SLO and error-budget tracking for HealthEquity member journeys.",
     "scopes": [

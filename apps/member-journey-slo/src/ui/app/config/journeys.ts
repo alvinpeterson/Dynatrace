@@ -31,6 +31,9 @@ export type SloType = 'availability' | 'latency';
 
 export type JourneyTier = 'critical' | 'high' | 'standard';
 
+/** OpenTelemetry span kinds, as stored in Grail's `span.kind`. */
+export type SpanKind = 'SERVER' | 'CLIENT' | 'INTERNAL' | 'CONSUMER' | 'PRODUCER';
+
 export interface JourneySlo {
   /** availability = success ratio; latency = % of requests under threshold. */
   type: SloType;
@@ -49,6 +52,13 @@ export interface Journey {
   description: string;
   /** Span `endpoint.name` that identifies this journey's requests. */
   endpoint: string;
+  /**
+   * Span kinds to scope this journey to. Omit for web requests — the default
+   * is service-entry spans (SERVER or root). Set explicitly for messaging /
+   * internal flows, e.g. ['INTERNAL'] for an event handler or ['CONSUMER']
+   * for a queue consumer.
+   */
+  spanKinds?: SpanKind[];
   /** Business criticality — drives sort order and alert severity. */
   tier: JourneyTier;
   /** One or more objectives evaluated against the journey. */
@@ -78,8 +88,22 @@ export const JOURNEYS: Journey[] = [
       { type: 'latency', target: 99.0, thresholdMs: 2000 },
     ],
   },
+  {
+    id: 'card.authorization',
+    name: 'Card Transaction Authorization',
+    description:
+      'Real-time processing of a card transaction authorization (CardTransactionClassicHandler).',
+    endpoint: 'CardTransactionClassicHandler.Handle',
+    // Messaging-driven (Fiserv webhook → event → handler), so the auth decision
+    // runs in an INTERNAL span, not a SERVER request.
+    spanKinds: ['INTERNAL'],
+    tier: 'critical',
+    slos: [
+      { type: 'availability', target: 99.95 },
+      { type: 'latency', target: 99.5, thresholdMs: 500 },
+    ],
+  },
   // ── Pending endpoint confirmation — add the real endpoint.name, then enable ──
-  // Card authorization:      BalanceAuditHandler.Handle / Hqy.Card.BalanceAudit.*
   // Open enrollment signup:  /hqy/enrollment/v1/Partners/... , GetCustomEnrollmentConfigurationByUrl
   // HSA contribution:        HSAInterfaces.Finance.Events:VoidedCashInOutEvent
   // Claims / reimbursement:  <to be identified>
