@@ -5,17 +5,21 @@
   },
   "app": {
     "name": "HealthEquity Member Journey SLOs",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "id": "my.healthequity.member.journey.slo",
     "description": "SLO and error-budget tracking for HealthEquity member journeys.",
     "scopes": [
       {
-        "name": "storage:bizevents:read",
-        "comment": "Query member-journey business events that carry the SLI signal"
+        "name": "storage:buckets:read",
+        "comment": "Required to read any Grail bucket backing the queried tables"
       },
       {
         "name": "storage:spans:read",
-        "comment": "Drill into distributed traces for failing journeys"
+        "comment": "Primary SLI signal: distributed traces for member journeys"
+      },
+      {
+        "name": "storage:bizevents:read",
+        "comment": "Alternate SLI signal if journeys move to business events"
       },
       {
         "name": "storage:metrics:read",
