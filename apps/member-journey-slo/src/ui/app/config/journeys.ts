@@ -31,6 +31,12 @@ export type SloType = 'availability' | 'latency';
 
 export type JourneyTier = 'critical' | 'high' | 'standard';
 
+/** Product domain a journey belongs to — used to group cards in the UI. */
+export type JourneyGroup = 'Access' | 'Card' | 'Account';
+
+/** Order the groups are displayed in. */
+export const GROUP_ORDER: JourneyGroup[] = ['Access', 'Card', 'Account'];
+
 /** OpenTelemetry span kinds, as stored in Grail's `span.kind`. */
 export type SpanKind = 'SERVER' | 'CLIENT' | 'INTERNAL' | 'CONSUMER' | 'PRODUCER';
 
@@ -52,6 +58,8 @@ export interface Journey {
   description: string;
   /** Span `endpoint.name` that identifies this journey's requests. */
   endpoint: string;
+  /** Product domain this journey belongs to (groups cards in the UI). */
+  group: JourneyGroup;
   /**
    * Span kinds to scope this journey to. Omit for web requests — the default
    * is service-entry spans (SERVER or root). Set explicitly for messaging /
@@ -66,28 +74,21 @@ export interface Journey {
 }
 
 export const JOURNEYS: Journey[] = [
+  // ── Access ────────────────────────────────────────────────────────────────
   {
     id: 'member.login',
     name: 'Member Authentication',
     description: 'Member sign-in to the Member Portal (/ClientLogin.aspx).',
     endpoint: '/ClientLogin.aspx',
+    group: 'Access',
     tier: 'critical',
     slos: [
       { type: 'availability', target: 99.9 },
       { type: 'latency', target: 99.0, thresholdMs: 1500 },
     ],
   },
-  {
-    id: 'member.balance',
-    name: 'Member Balance Inquiry',
-    description: 'Member account balance lookup (GetBalanceDetails).',
-    endpoint: 'GetBalanceDetails',
-    tier: 'high',
-    slos: [
-      { type: 'availability', target: 99.5 },
-      { type: 'latency', target: 99.0, thresholdMs: 2000 },
-    ],
-  },
+
+  // ── Card ──────────────────────────────────────────────────────────────────
   {
     id: 'card.authorization',
     name: 'Card Transaction Authorization',
@@ -97,10 +98,76 @@ export const JOURNEYS: Journey[] = [
     // Messaging-driven (Fiserv webhook → event → handler), so the auth decision
     // runs in an INTERNAL span, not a SERVER request.
     spanKinds: ['INTERNAL'],
+    group: 'Card',
     tier: 'critical',
     slos: [
       { type: 'availability', target: 99.95 },
       { type: 'latency', target: 99.5, thresholdMs: 500 },
+    ],
+  },
+  {
+    id: 'card.activation',
+    name: 'Card Activation',
+    description: 'Member activates a new or replacement card (/api/card/v2/activate).',
+    endpoint: '/api/card/v2/activate',
+    group: 'Card',
+    tier: 'high',
+    slos: [
+      { type: 'availability', target: 99.5 },
+      { type: 'latency', target: 99.0, thresholdMs: 2000 },
+    ],
+  },
+  {
+    id: 'card.balance',
+    name: 'Card Balance (Purse)',
+    description:
+      'Member checks available card/purse balance (/apps/memberaccountaggregationbefe/card/PurseBalance).',
+    endpoint: '/apps/memberaccountaggregationbefe/card/PurseBalance',
+    group: 'Card',
+    tier: 'high',
+    slos: [
+      { type: 'availability', target: 99.5 },
+      { type: 'latency', target: 99.0, thresholdMs: 2000 },
+    ],
+  },
+  {
+    id: 'card.transactions',
+    name: 'Card Transaction History',
+    description:
+      'Member views posted card transactions (/apps/memberaccountaggregationbefe/card/transactions/postedV2).',
+    endpoint: '/apps/memberaccountaggregationbefe/card/transactions/postedV2',
+    group: 'Card',
+    tier: 'standard',
+    slos: [
+      { type: 'availability', target: 99.5 },
+      { type: 'latency', target: 99.0, thresholdMs: 2500 },
+    ],
+  },
+  {
+    id: 'card.lost',
+    name: 'Report Lost Card',
+    description:
+      'Member reports a lost card (/apps/memberaccountaggregationbefe/card/LostCard).',
+    endpoint: '/apps/memberaccountaggregationbefe/card/LostCard',
+    group: 'Card',
+    tier: 'high',
+    slos: [
+      { type: 'availability', target: 99.5 },
+      { type: 'latency', target: 99.0, thresholdMs: 3000 },
+    ],
+  },
+
+  // ── Account ───────────────────────────────────────────────────────────────
+  {
+    id: 'member.balance',
+    name: 'Member Balance Inquiry',
+    description: 'Member account balance lookup (GetBalanceDetails).',
+    endpoint: 'GetBalanceDetails',
+    group: 'Account',
+    tier: 'high',
+    slos: [
+      { type: 'availability', target: 99.5 },
+      { type: 'latency', target: 99.0, thresholdMs: 2000 },
     ],
   },
   // ── Pending endpoint confirmation — add the real endpoint.name, then enable ──
@@ -115,9 +182,22 @@ const TIER_ORDER: Record<JourneyTier, number> = {
   standard: 2,
 };
 
-/** Journeys sorted by business criticality, then name. */
-export function journeysByTier(): Journey[] {
-  return [...JOURNEYS].sort(
+/** Journeys for one group, sorted by business criticality, then name. */
+function sortByTier(journeys: Journey[]): Journey[] {
+  return [...journeys].sort(
     (a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier] || a.name.localeCompare(b.name),
   );
+}
+
+/** All journeys, flat, sorted by business criticality, then name. */
+export function journeysByTier(): Journey[] {
+  return sortByTier(JOURNEYS);
+}
+
+/** Journeys bucketed by product domain, in display order. Empty groups drop out. */
+export function journeysByGroup(): { group: JourneyGroup; journeys: Journey[] }[] {
+  return GROUP_ORDER.map((group) => ({
+    group,
+    journeys: sortByTier(JOURNEYS.filter((j) => j.group === group)),
+  })).filter((g) => g.journeys.length > 0);
 }
