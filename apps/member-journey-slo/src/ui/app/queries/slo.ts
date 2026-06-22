@@ -25,11 +25,14 @@ import {
  * makes the SLI reflect the request as the member experiences it. Journeys that
  * set `spanKinds` (e.g. messaging-driven flows) are scoped to those kinds
  * instead.
+ *
+ * Grail stores `span.kind` lowercase (server/internal/consumer/...), so kind
+ * values are lowercased before comparison.
  */
 function journeyFilter(journey: Journey): string {
   const scope = journey.spanKinds
-    ? `in(span.kind, ${journey.spanKinds.map((k) => `"${k}"`).join(', ')})`
-    : `(span.kind == "SERVER" or request.is_root_span == true)`;
+    ? `in(span.kind, ${journey.spanKinds.map((k) => `"${k.toLowerCase()}"`).join(', ')})`
+    : `(span.kind == "server" or request.is_root_span == true)`;
   return `filter ${scope} and endpoint.name == "${journey.endpoint}"`;
 }
 
