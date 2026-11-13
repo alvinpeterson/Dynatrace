@@ -205,13 +205,22 @@ every string, so pass plain text only — never markup.
      `url` links the title (a problem, ticket, message, or chat link) when one exists.
    - **sections:** in the order from step 5. A section with no items and no `empty` text is dropped.
 
-2. Render to a file the teammate can open (in the primary working directory, which is
-   gitignored for `briefs/`):
+2. Render the page into the teammate's **Documents/Daily Brief** folder, one file per day:
 
    ```bash
-   mkdir -p briefs
-   python3 -I .claude/skills/daily-brief/assets/render.py <scratchpad>/daily-brief-data.json briefs/daily-brief-$(TZ=America/Chicago date +%F).html
+   OUT_DIR="${DAILY_BRIEF_DIR:-$HOME/Documents/Daily Brief}"
+   mkdir -p "$OUT_DIR"
+   OUT="$OUT_DIR/daily-brief-$(TZ=America/Chicago date +%F).html"
+   python3 -I .claude/skills/daily-brief/assets/render.py <scratchpad>/daily-brief-data.json "$OUT"
    ```
+
+   - Quote the path: the folder name contains a space.
+   - Running the brief again the same day overwrites that day's file. Earlier days are kept.
+   - `DAILY_BRIEF_DIR` overrides the folder if it is set.
+   - **Cloud sessions only** (`CLAUDE_CODE_REMOTE=true`): the container is temporary and the
+     teammate can only open files inside the working directory. Also copy the page to `briefs/`
+     in the working directory (gitignored) and send that copy. Tell the teammate the
+     Documents copy disappears when the cloud session ends.
 
 3. Render check: take a screenshot with the preinstalled browser (`chromium.launch()` needs no
    options; never run `playwright install`) at 960 px and 420 px wide, look at both images, and fix
@@ -220,7 +229,8 @@ every string, so pass plain text only — never markup.
    appears only in the headline; every time is Central.
 
 4. Send the HTML file to the teammate (SendUserFile with `display: "render"` when available;
-   otherwise give the path), with a 2 to 3 line chat summary of the top Needs attention items.
+   otherwise give the full saved path), with a 2 to 3 line chat summary of the top Needs
+   attention items and the path it was saved to.
 
 ## Voice
 
