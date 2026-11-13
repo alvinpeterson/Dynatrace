@@ -1,0 +1,49 @@
+{
+  "title": "Daily brief — sample",
+  "date_line": "Friday · November 13 2026",
+  "headline": "One payments slowdown is still open; the rest of the night settled on its own.",
+  "window": "SAMPLE DATA ONLY · 6 PM Thu – 10:40 AM CT",
+  "terrain": {
+    "label": "Dynatrace problem load, 6 PM to 10:40 AM Central",
+    "start": "2026-11-13T00:00:00Z",
+    "end": "2026-11-13T16:40:00Z",
+    "hourly": [3, 2, 4, 6, 14, 22, 9, 4, 3, 2, 2, 1, 2, 3, 5, 7, 6],
+    "markers": [
+      {"t": "2026-11-13T05:10:00Z", "kind": "significant", "weight": 3, "accent": true},
+      {"t": "2026-11-13T03:20:00Z", "kind": "resolved", "weight": 1},
+      {"t": "2026-11-13T14:55:00Z", "kind": "active", "weight": 2}
+    ]
+  },
+  "acts": [
+    {"time": "6 – 11 PM", "text": "Quiet start: a handful of synthetic monitor blips, all closed within five minutes."},
+    {"time": "11 PM – 5 AM", "text": "Example service availability dropped for 48 minutes after a 10:55 PM deployment, then recovered."},
+    {"time": "5 AM onward", "text": "A slowdown on the example payments API opened at 8:55 AM and is still active."}
+  ],
+  "sections": [
+    {
+      "title": "Needs attention",
+      "items": [
+        {"title": "Payments API slowdown still open", "url": "https://example.com/problem/P-0001", "sentence": "In Dynatrace, P-0001 has been active since 8:55 AM with response time about 3x baseline on the example payments service.", "source_text": "In Dynatrace", "source_url": "https://example.com/problem/P-0001"},
+        {"title": "Approval asked for tonight's change window", "url": "", "sentence": "Your manager asked in email at 7:12 AM for a go or no-go on the example change by noon; no reply sent yet.", "source_text": "in email", "source_url": ""}
+      ]
+    },
+    {
+      "title": "Leadership",
+      "items": [
+        {"title": "Manager: change window decision", "url": "", "sentence": "Same ask as above; needs a decision by noon.", "source_text": "", "source_url": ""},
+        {"title": "CIO: nothing new", "url": "", "sentence": "No messages in the window.", "source_text": "", "source_url": ""}
+      ]
+    },
+    {
+      "title": "Resolved",
+      "items": [
+        {"title": "Overnight availability drop recovered", "url": "", "sentence": "In Dynatrace, P-0002 closed at 12:43 AM after the example deployment was rolled back.", "source_text": "", "source_url": ""}
+      ]
+    },
+    {
+      "title": "Not checked",
+      "items": [],
+      "empty": "Sample only — no sources were queried."
+    }
+  ]
+}
