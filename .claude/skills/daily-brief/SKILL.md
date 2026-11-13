@@ -1,11 +1,11 @@
 ---
-name: morning
-description: Morning start-of-day brief. Reviews significant Dynatrace issues since 6pm the prior workday, pulls in other pertinent signals, and triages Outlook email and Microsoft Teams messages, with priority on leadership contacts and urgent items still awaiting a reply. Run only when the teammate types /morning.
+name: daily-brief
+description: Morning start-of-day brief. Reviews significant Dynatrace issues since 6pm the prior workday, pulls in other pertinent signals, and triages Outlook email and Microsoft Teams messages, with priority on leadership contacts and urgent items still awaiting a reply. Run only when the teammate types /daily-brief.
 disable-model-invocation: true
 argument-hint: "[optional: since=<ISO time or 'yesterday 6pm'>] [optional: tz=<IANA zone>]"
 ---
 
-# /morning — start-of-day brief
+# /daily-brief — start-of-day brief
 
 Goal: give the teammate exactly what they need to start the day, focused on issues that need
 action. Lead with what needs attention; leave out anything that is healthy, routine, or already handled.
@@ -119,7 +119,7 @@ If a leadership name returns multiple directory accounts, ignore admin and servi
 Use plain, calm, factual language and short sections:
 
 ```
-Morning brief — <date>   Window: <start local> to <now local> (<tz>)
+Daily brief — <date>   Window: <start local> to <now local> (<tz>)
 
 Needs your attention now
   1. ...  (at most 5 items, across all sources, most urgent first)
